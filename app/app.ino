@@ -6,11 +6,11 @@ const char* ssid = "ASUS_2.4G";
 const char* password =  "wifi1andar";
 
 //PIN assignment
-#define PIN_SCE 15
-#define PIN_RESET 2
+#define PIN_SCE 17
+#define PIN_RESET 16
 #define PIN_DC 4
-#define PIN_SDIN 16
-#define PIN_SCLK 17
+#define PIN_SDIN 2
+#define PIN_SCLK 15
 #define LCD_COMMAND 0
 #define LCD_DATA 1
 
@@ -231,6 +231,10 @@ void loop() {
         for (int i = 0; i < online; i++) {
           String info = doc["players"]["sample"][i]["name"];
           n = info.length() + 1;
+          if (n >= 13) {
+            info.substring(0, 12);
+            n = 13;
+          }
           charArray[n+1];
           info.toCharArray(charArray, n);
           LCDString(charArray);
