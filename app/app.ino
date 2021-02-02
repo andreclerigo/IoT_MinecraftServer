@@ -2,6 +2,7 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
+//Credentials to connect to the internet
 const char* ssid = "ASUS_2.4G";
 const char* password =  "wifi1andar";
 
@@ -132,13 +133,19 @@ void LCDCharacter(char character) {
   LCDWrite(LCD_DATA, 0x00);
 }
 
-void LCDString(char *characters) {
+//Write a string on the display
+void LCDString(String str) {
+  int n = str.length()+1;
+  char charArray[n+1];
+  str.toCharArray(charArray, n);
+  char *characters = charArray;
   while (*characters)
   {
     LCDCharacter(*characters++);
   }
 }
 
+//Clear the display
 void LCDClear() {
   for (int index = 0 ; index < (LCD_X * LCD_Y / 8) ; index++)
   {
@@ -147,6 +154,7 @@ void LCDClear() {
   positionXY(0, 0);
 }
 
+//Iniciate LCD on setup
 void LCDInit() {
   pinMode(PIN_SCE, OUTPUT);
   pinMode(PIN_RESET, OUTPUT);
@@ -170,6 +178,7 @@ void LCDWrite(byte data_or_command, byte data) {
   digitalWrite(PIN_SCE, HIGH);
 }
 
+//Fill the line so it simulates a println on the names
 void fillEmpty(int n) {
   int nEmpty = 13 - n;
   for (int j = 0; j < nEmpty; j++) {
@@ -179,7 +188,7 @@ void fillEmpty(int n) {
 
 void setup() {
   LCDInit();
-  Serial.begin(115200);
+  Serial.begin(115200);  //Serial for debug
   delay(4000);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -192,55 +201,59 @@ void setup() {
 String plonline;
 int nEmpty;
 int online;
-
+int pages = 1;
+int n;
 
 void loop() {
-  LCDClear();
   if ((WiFi.status() == WL_CONNECTED)) { //Check the current connection status
     HTTPClient http;
     http.begin("https://api.minetools.eu/ping/andrerpi4.ddns.net/25565"); //Specify the URL
-    int httpCode = http.GET();                                        //Make the request
-    if (httpCode > 0) { //Check for the returning code
-      String payload = http.getString();
-      //Serial.println(httpCode);
-      DynamicJsonDocument doc(16384);
+    int httpCode = http.GET();                                     //Make the request
+    if (httpCode > 0) {                                            //Check for the returning code
+      String payload = http.getString();        
+      DynamicJsonDocument doc(16384);                              //JSON document
       auto error = deserializeJson(doc, payload);
       if (error) {
           Serial.print(F("deserializeJson() failed with code "));
           Serial.println(error.c_str());
           return;
       }
-
+      
+      LCDClear();
       String errorFetch = doc["error"];
-      Serial.println(errorFetch);
-      Serial.println(errorFetch.length());
-      if (errorFetch.length() > 4) {
+      if (errorFetch.length() > 4) {        //If exists erro.length = 4 (null)
         LCDString("Server      Offline");
       } else {
-        online = doc["players"]["online"];
+        online = doc["players"]["online"];  //number of online people
         String str = "Online: ";
         plonline = str + online;
-        //Serial.println(plonline);
-        int n = plonline.length() + 1;
-        char charArray[n + 1];
-        plonline.toCharArray(charArray, n);
-        LCDString(charArray);
-        fillEmpty(n);
-    
+        
+        if (online > 5) {
+          pages = 2;
+        }
+        
         //Print Player names
-        for (int i = 0; i < online; i++) {
-          String info = doc["players"]["sample"][i]["name"];
-          n = info.length() + 1;
-          if (n >= 13) {
-            info.substring(0, 12);
-            n = 13;
-          }
-          charArray[n+1];
-          info.toCharArray(charArray, n);
-          LCDString(charArray);
+        for (int j = 0; j < pages; j++) {
+          n = plonline.length() + 1;
+          LCDString(plonline);
           fillEmpty(n);
-          
-          Serial.println(info);
+          for (int i = 0 + j*5; i < 5*(j+1); i++) {  //Print player from 0 to 4 or 5 to 9
+            if (i < online) {
+              String info = doc["players"]["sample"][i]["name"];  //Retreive the ID
+              n = info.length() + 1;  
+              if (n >= 13) {                  
+                info = info.substring(0, 12);  //Yonke players names that are above 13 characters
+                n = 13;
+                LCDString(info);
+              } else {
+                LCDString(info);
+                fillEmpty(n);     //Fill the rest of line
+              }
+              Serial.println(info);
+            }
+          }
+          delay(60000);
+          LCDClear();
         }
       }
     } else {
@@ -248,5 +261,4 @@ void loop() {
     }
     http.end(); //Free the resources
   }
-  delay(20000);
 }
