@@ -6,3 +6,4 @@ ESP project that mimics my rpi_minecraft_web but on a Nokia5110 LCD
 
 # Packages
 Using the arduino IDE
+Used https://dl.espressif.com/dl/package_esp32_index.json in the "Additional Board Manager URLs"
