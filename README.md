@@ -5,7 +5,7 @@ ESP project that mimics my rpi_minecraft_web but on a Nokia5110 LCD
 ![alt text](https://i.imgur.com/g0OilhH.png)
 
 # Design
-Special thanks to @tiagooliveira95 for the 3d pieces
+Special thanks to [Tiago Oliveira](https://github.com/tiagooliveira95) for the 3d pieces
 
 # Packages
 Using the arduino IDE
