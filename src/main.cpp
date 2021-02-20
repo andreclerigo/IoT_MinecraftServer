@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
@@ -119,6 +120,13 @@ static const byte ASCII[][5] = {
 {0x78, 0x46, 0x41, 0x46, 0x78}, // 7f DEL
 };
 
+void LCDWrite(byte data_or_command, byte data) {
+  digitalWrite(PIN_DC, data_or_command);
+  digitalWrite(PIN_SCE, LOW);
+  shiftOut(PIN_SDIN, PIN_SCLK, MSBFIRST, data);
+  digitalWrite(PIN_SCE, HIGH);
+}
+
 void positionXY(int x, int y) {
   LCDWrite(0, 0x80 | x);
   LCDWrite(0, 0x40 | y);
@@ -169,13 +177,6 @@ void LCDInit() {
   LCDWrite(LCD_COMMAND, 0x14);
   LCDWrite(LCD_COMMAND, 0x20);
   LCDWrite(LCD_COMMAND, 0x0C);
-}
-
-void LCDWrite(byte data_or_command, byte data) {
-  digitalWrite(PIN_DC, data_or_command);
-  digitalWrite(PIN_SCE, LOW);
-  shiftOut(PIN_SDIN, PIN_SCLK, MSBFIRST, data);
-  digitalWrite(PIN_SCE, HIGH);
 }
 
 //Fill the line so it simulates a println on the names

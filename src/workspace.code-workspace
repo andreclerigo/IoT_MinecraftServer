@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "..\\..\\..\\..\\..\\Desktop\\pygames\\tetris"
+		},
+		{
+			"name": "ESP32_Minecraft_IoT",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
