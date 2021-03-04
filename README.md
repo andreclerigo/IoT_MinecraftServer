@@ -8,5 +8,5 @@ ESP project that mimics my [rpi_minecraft_web](https://github.com/andreclerigo/r
 Special thanks to [Tiago Oliveira](https://github.com/tiagooliveira95) for the 3d pieces
 
 # Packages
-Using VSCode with PlatformIO
+Using VSCode with PlatformIO <br>
 Also using https://github.com/bblanchon/ArduinoJson
