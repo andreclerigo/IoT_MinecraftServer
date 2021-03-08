@@ -6,6 +6,7 @@ ESP project that mimics my [rpi_minecraft_web](https://github.com/andreclerigo/r
 
 # Design
 Special thanks to [Tiago Oliveira](https://github.com/tiagooliveira95) for the 3d pieces
+![](https://i.imgur.com/asQhkI0.png)  
 
 # Packages
 Using VSCode with PlatformIO <br>
