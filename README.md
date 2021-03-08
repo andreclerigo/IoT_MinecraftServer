@@ -9,5 +9,5 @@ Special thanks to [Tiago Oliveira](https://github.com/tiagooliveira95) for the 3
 ![](https://i.imgur.com/asQhkI0.png)  
 
 # Packages
-Using VSCode with PlatformIO <br>
+**This project uses VSCode extension [PlatformIO](https://platformio.org/) to program the microcontrollers**  
 Also using https://github.com/bblanchon/ArduinoJson
