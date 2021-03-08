@@ -121,82 +121,84 @@ static const byte ASCII[][5] = {
 };
 
 void LCDWrite(byte data_or_command, byte data) {
-  digitalWrite(PIN_DC, data_or_command);
-  digitalWrite(PIN_SCE, LOW);
-  shiftOut(PIN_SDIN, PIN_SCLK, MSBFIRST, data);
-  digitalWrite(PIN_SCE, HIGH);
+    digitalWrite(PIN_DC, data_or_command);
+    digitalWrite(PIN_SCE, LOW);
+    shiftOut(PIN_SDIN, PIN_SCLK, MSBFIRST, data);
+    digitalWrite(PIN_SCE, HIGH);
 }
 
 void positionXY(int x, int y) {
-  LCDWrite(0, 0x80 | x);
-  LCDWrite(0, 0x40 | y);
+    LCDWrite(0, 0x80 | x);
+    LCDWrite(0, 0x40 | y);
 }
 
 void LCDCharacter(char character) {
-  LCDWrite(LCD_DATA, 0x00);
-  for (int index = 0 ; index < 5 ; index++)
-  {
-    LCDWrite(LCD_DATA, ASCII[character - 0x20][index]);
-  }
-  LCDWrite(LCD_DATA, 0x00);
+    LCDWrite(LCD_DATA, 0x00);
+    for (int index = 0 ; index < 5 ; index++)
+    {
+        LCDWrite(LCD_DATA, ASCII[character - 0x20][index]);
+    }
+    LCDWrite(LCD_DATA, 0x00);
 }
 
 //Write a string on the display
 void LCDString(String str) {
-  int n = str.length()+1;
-  char charArray[n+1];
-  str.toCharArray(charArray, n);
-  char *characters = charArray;
-  while (*characters)
-  {
-    LCDCharacter(*characters++);
-  }
+    int n = str.length()+1;
+    char charArray[n+1];
+    str.toCharArray(charArray, n);
+    char *characters = charArray;
+    while (*characters)
+    {
+        LCDCharacter(*characters++);
+    }
 }
 
 //Clear the display
 void LCDClear() {
-  for (int index = 0 ; index < (LCD_X * LCD_Y / 8) ; index++)
-  {
-    LCDWrite(LCD_DATA, 0x00);
-  }
-  positionXY(0, 0);
+    for (int index = 0 ; index < (LCD_X * LCD_Y / 8) ; index++)
+    {
+        LCDWrite(LCD_DATA, 0x00);
+    }
+    positionXY(0, 0);
 }
 
 //Iniciate LCD on setup
 void LCDInit() {
-  pinMode(PIN_SCE, OUTPUT);
-  pinMode(PIN_RESET, OUTPUT);
-  pinMode(PIN_DC, OUTPUT);
-  pinMode(PIN_SDIN, OUTPUT);
-  pinMode(PIN_SCLK, OUTPUT);
-  digitalWrite(PIN_RESET, LOW);
-  digitalWrite(PIN_RESET, HIGH);
-  LCDWrite(LCD_COMMAND, 0x21);
-  LCDWrite(LCD_COMMAND, 0xB0);
-  LCDWrite(LCD_COMMAND, 0x04);
-  LCDWrite(LCD_COMMAND, 0x14);
-  LCDWrite(LCD_COMMAND, 0x20);
-  LCDWrite(LCD_COMMAND, 0x0C);
+    pinMode(PIN_SCE, OUTPUT);
+    pinMode(PIN_RESET, OUTPUT);
+    pinMode(PIN_DC, OUTPUT);
+    pinMode(PIN_SDIN, OUTPUT);
+    pinMode(PIN_SCLK, OUTPUT);
+    digitalWrite(PIN_RESET, LOW);
+    digitalWrite(PIN_RESET, HIGH);
+    LCDWrite(LCD_COMMAND, 0x21);
+    LCDWrite(LCD_COMMAND, 0xB0);
+    LCDWrite(LCD_COMMAND, 0x04);
+    LCDWrite(LCD_COMMAND, 0x14);
+    LCDWrite(LCD_COMMAND, 0x20);
+    LCDWrite(LCD_COMMAND, 0x0C);
 }
 
 //Fill the line so it simulates a println on the names
 void fillEmpty(int n) {
-  int nEmpty = 13 - n;
-  for (int j = 0; j < nEmpty; j++) {
-    LCDString(" ");
-  }
+    int nEmpty = 13 - n;
+    for (int j = 0; j < nEmpty; j++)
+    {
+        LCDString(" ");
+    }
 }
 
 void setup() {
-  LCDInit();
-  Serial.begin(115200);  //Serial for debug
-  delay(4000);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi..");
-  }
-  Serial.println("Connected to the WiFi network");
+    LCDInit();
+    Serial.begin(115200);  //Serial for debug
+    delay(4000);
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) 
+    {
+        delay(1000);
+        Serial.println("Connecting to WiFi..");
+    }
+    Serial.println("Connected to the WiFi network");
 }
 
 String plonline;
@@ -206,60 +208,67 @@ int pages = 1;
 int n;
 
 void loop() {
-  if ((WiFi.status() == WL_CONNECTED)) { //Check the current connection status
-    HTTPClient http;
-    http.begin("https://api.minetools.eu/ping/andrerpi4.ddns.net/25565"); //Specify the URL
-    int httpCode = http.GET();                                     //Make the request
-    if (httpCode > 0) {                                            //Check for the returning code
-      String payload = http.getString();        
-      DynamicJsonDocument doc(16384);                              //JSON document
-      auto error = deserializeJson(doc, payload);
-      if (error) {
-          Serial.print(F("deserializeJson() failed with code "));
-          Serial.println(error.c_str());
-          return;
-      }
-      
-      LCDClear();
-      String errorFetch = doc["error"];
-      if (errorFetch.length() > 4) {        //If doesnt exist error.length = 4 (null)
-        LCDString("Server      Offline");
-      } else {
-        online = doc["players"]["online"];  //number of online people
-        String str = "Online: ";
-        plonline = str + online;
-        
-        if (online > 5) {
-          pages = 2;
-        }
-        
-        //Print Player names
-        for (int j = 0; j < pages; j++) {
-          n = plonline.length() + 1;
-          LCDString(plonline);
-          fillEmpty(n);
-          for (int i = 0 + j*5; i < 5*(j+1); i++) {  //Print player from 0 to 4 or 5 to 9
-            if (i < online) {
-              String info = doc["players"]["sample"][i]["name"];  //Retreive the ID
-              n = info.length() + 1;  
-              if (n >= 13) {                  
-                info = info.substring(0, 12);  //Yonke players names that are above 13 characters
-                n = 13;
-                LCDString(info);
-              } else {
-                LCDString(info);
-                fillEmpty(n);     //Fill the rest of line
-              }
-              Serial.println(info);
+    if ((WiFi.status() == WL_CONNECTED)) //Check the current connection status
+    { 
+        HTTPClient http;
+        http.begin("https://api.minetools.eu/ping/andrerpi4.ddns.net/25565");   //Specify the URL
+        int httpCode = http.GET();                                              //Make the request
+        if (httpCode > 0)                                                       //Check for the returning code
+        {                                            
+            String payload = http.getString();        
+            DynamicJsonDocument doc(16384);                              //JSON document
+            auto error = deserializeJson(doc, payload);
+            if (error) 
+            {
+                Serial.print(F("deserializeJson() failed with code "));
+                Serial.println(error.c_str());
+                return;
             }
-          }
-          delay(60000);
-          LCDClear();
+            
+            LCDClear();
+            String errorFetch = doc["error"];
+            if (errorFetch.length() > 4) {        //If exists erro.length = 4 (null)
+            LCDString("Server      Offline");
+            } else {
+            online = doc["players"]["online"];  //number of online people
+            String str = "Online: ";
+            plonline = str + online;
+            
+            if (online > 5) 
+            {
+                pages = 2;
+            }
+            
+            //Print Player names
+            for (int j = 0; j < pages; j++) 
+            {
+                n = plonline.length() + 1;
+                LCDString(plonline);
+                fillEmpty(n);
+                for (int i = 0 + j*5; i < 5*(j+1); i++) {  //Print player from 0 to 4 or 5 to 9
+                    if (i < online) 
+                    {
+                        String info = doc["players"]["sample"][i]["name"];  //Retreive the ID
+                        n = info.length() + 1;  
+                        if (n >= 13) {                  
+                        info = info.substring(0, 12);  //Yonke players names that are above 13 characters
+                        n = 13;
+                        LCDString(info);
+                        } else {
+                        LCDString(info);
+                        fillEmpty(n);     //Fill the rest of line
+                        }
+                        Serial.println(info);
+                    }
+                }
+                delay(60000);
+                LCDClear();
+            }
+            }
+        } else 
+        {
+            Serial.println("Error on HTTP request");
         }
-      }
-    } else {
-      Serial.println("Error on HTTP request");
+        http.end(); //Free the resources
     }
-    http.end(); //Free the resources
-  }
 }
