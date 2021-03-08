@@ -222,7 +222,7 @@ void loop() {
       
       LCDClear();
       String errorFetch = doc["error"];
-      if (errorFetch.length() > 4) {        //If exists erro.length = 4 (null)
+      if (errorFetch.length() > 4) {        //If doesnt exist error.length = 4 (null)
         LCDString("Server      Offline");
       } else {
         online = doc["players"]["online"];  //number of online people
